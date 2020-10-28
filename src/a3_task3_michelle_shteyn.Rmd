@@ -1,0 +1,126 @@
+---
+title: "A3 Task 3"
+author: "Michelle Shteyn"
+date: "10/27/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+library(here)
+library(janitor)
+library(kableExtra)
+```
+
+
+## Read in data, change variable names to lower_snake_case
+```{r, message=FALSE}
+urchins <- read_csv(here("data","urchins.csv")) 
+urchins<-clean_names(urchins)
+```
+
+# Section 1: Size comparisons, purple and red urchins
+
+## i. Exploratory data visualization
+
+Compare the distribution of sizes between purple and red urchins.  
+
+### Faceted histogram
+```{r, message=FALSE}
+ggplot(data=urchins, aes(x=size))+
+  geom_histogram()+
+  facet_wrap(~common_name)
+```
+
+### Boxplot
+```{r}
+ggplot(data=urchins, aes(x=common_name, y =size))+
+  geom_boxplot()
+```
+
+## ii. Descriptive Statistics Table
+
+Create a summary table that contains the following statistics for purple and red urchins:  
+- Mean  
+- Median  
+- Standard Deviation  
+- Sample size
+
+```{r, message=FALSE}
+urchins_table <- urchins %>% 
+  group_by(common_name) %>% 
+  summarize(mean_size = mean(size),
+            median_size = median(size),
+            sd_size = sd(size),
+            n = n())
+
+urchins_table%>% 
+  kable(col.names = c("Urchin Type",
+                      "Mean size (cm)", 
+                      "Median size (cm)",
+                      "Standard deviation",
+                      "Sample size")) %>% 
+  kable_styling(full_width = FALSE)
+```
+
+Calculations for actual and % mean difference in urchin diameter below:
+```{r}
+6.776489 - 4.469797 #actual difference: 2.306692 cm
+
+#Percent difference: take the difference between two values, divide it by the average of the two values, multiply that number by 100
+
+(6.776489 - 4.469797)/((6.776489 + 4.469797)/2)*100 #percent difference: 41.02%
+
+```
+
+## Overall Takeaways
+
+From the exploratory graphs, we can see that the red urchins have greater spread in their sizes than the purple urchins because the histogram is flatter and the boxplot shows a greater interquartile range (with the whiskers extending out further). The red urchin size distribution is also more normal than the purple size distribution, which is positively skewed with a few outliers falling to the right but the majority of sizes clustering around 4 cm. The descriptive statistics in the table reinforce this, as the red urchins have a greater standard deviation (1.89) than the purple urchins (1.18), indicating greater spread, and the mean of the purple urchins is 4.47 while the red urchins' is 6.78. Between the species, the actual difference in mean urchin diameter is 2.31 cm, and the percent difference in mean diameter is 41.02%, which appears to be quite substantial and may indicate that these urchins were selected from populations with a different mean.
+
+
+
+# Section 2: Explore purple urchin counts by site and year
+
+## i. Create stored subset of the urchins data called 'purple_urchins'
+
+```{r, message=FALSE}
+purple_urchins <- urchins %>% 
+  filter(common_name=="Purple Urchin") %>% #Filter to only include obs for purple urchins
+  mutate(date=mdy(date), #Convert date to class "Date"
+         year=year(date), #Create new column that only contains the year
+         site_full=case_when(  #Create new column 'site_full'
+           site=="NAPL"~"Naples Reef",
+           site=="AQUE"~"Arroyo Quernado Reef",
+           site=="CARP"~"Carpinteria Reef",
+           site=="MOHK"~"Mohawk Reef",
+           site=="IVEE"~"Isla Vista Reef"
+         ))
+```
+
+## ii. Make summary table containing total number of purple urchins by site and year
+
+```{r, message=FALSE}
+purple_urchins_counts<-purple_urchins %>% 
+  group_by(site,year) %>% 
+  count()
+purple_urchins_counts
+```
+## iii. Make an exploratory graph of counts of purple urchins at each site over time
+
+Not finalized
+
+```{r, message=FALSE}
+ggplot(data=purple_urchins_counts, aes(x=year, y=n))+
+  geom_point()+
+  facet_wrap(~site)
+```
+
+
+
+
+
+
+
+
